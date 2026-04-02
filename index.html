@@ -1,0 +1,332 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Wiener Snake</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #1d1b1a;
+      --panel: #2a2421;
+      --accent: #ff9c44;
+      --text: #fef2e8;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      background: radial-gradient(circle at top, #3c2f2a, var(--bg));
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+    }
+
+    .game-wrap {
+      width: min(92vw, 640px);
+      display: grid;
+      gap: 12px;
+      justify-items: center;
+    }
+
+    .hud {
+      width: 100%;
+      display: flex;
+      justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 10px;
+      background: color-mix(in oklab, var(--panel), black 10%);
+      border: 1px solid color-mix(in oklab, var(--accent), black 65%);
+      font-weight: 700;
+    }
+
+    #game {
+      width: min(92vw, 640px);
+      height: min(92vw, 640px);
+      image-rendering: pixelated;
+      border-radius: 14px;
+      border: 2px solid #5e4639;
+      background: #261f1c;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+
+    .hint {
+      opacity: 0.88;
+      text-align: center;
+      font-size: 0.95rem;
+    }
+
+    button {
+      border: none;
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: #2d1400;
+    }
+
+    button:hover { filter: brightness(1.05); }
+  </style>
+</head>
+<body>
+  <main class="game-wrap">
+    <h1>🐕 Wiener Snake</h1>
+    <div class="hud">
+      <div>Score: <span id="score">0</span></div>
+      <button id="restart" type="button">Restart</button>
+    </div>
+    <canvas id="game" width="640" height="640" aria-label="Wiener dog snake game"></canvas>
+    <p class="hint">Use arrow keys or WASD. Eat treats, avoid walls and your own tail.</p>
+  </main>
+
+  <script>
+    const canvas = document.getElementById('game');
+    const ctx = canvas.getContext('2d');
+    if (!ctx) {
+      throw new Error('Canvas 2D context is not available in this browser.');
+    }
+    const scoreNode = document.getElementById('score');
+    const restartBtn = document.getElementById('restart');
+
+    const grid = 20;
+    const size = canvas.width / grid;
+
+    const state = {
+      snake: [],
+      direction: { x: 1, y: 0 },
+      nextDirection: { x: 1, y: 0 },
+      food: { x: 8, y: 8 },
+      score: 0,
+      gameOver: false,
+      speedMs: 120,
+    };
+
+    function reset() {
+      state.snake = [
+        { x: 5, y: 10 },
+        { x: 4, y: 10 },
+        { x: 3, y: 10 },
+        { x: 2, y: 10 },
+      ];
+      state.direction = { x: 1, y: 0 };
+      state.nextDirection = { x: 1, y: 0 };
+      state.score = 0;
+      state.gameOver = false;
+      state.speedMs = 120;
+      placeFood();
+      updateScore();
+    }
+
+    function updateScore() {
+      scoreNode.textContent = String(state.score);
+    }
+
+    function placeFood() {
+      let x, y, overlap;
+      do {
+        x = Math.floor(Math.random() * grid);
+        y = Math.floor(Math.random() * grid);
+        overlap = state.snake.some(seg => seg.x === x && seg.y === y);
+      } while (overlap);
+      state.food = { x, y };
+    }
+
+    function setDirection(x, y) {
+      if (state.direction.x + x === 0 && state.direction.y + y === 0) return;
+      state.nextDirection = { x, y };
+    }
+
+    function step() {
+      if (state.gameOver) return;
+
+      state.direction = state.nextDirection;
+      const head = state.snake[0];
+      const newHead = {
+        x: head.x + state.direction.x,
+        y: head.y + state.direction.y,
+      };
+
+      const hitWall = newHead.x < 0 || newHead.x >= grid || newHead.y < 0 || newHead.y >= grid;
+      const eating = newHead.x === state.food.x && newHead.y === state.food.y;
+      const bodyToCheck = eating ? state.snake : state.snake.slice(0, -1);
+      const hitSelf = bodyToCheck.some(seg => seg.x === newHead.x && seg.y === newHead.y);
+
+      if (hitWall || hitSelf) {
+        state.gameOver = true;
+        draw();
+        return;
+      }
+
+      state.snake.unshift(newHead);
+
+      if (eating) {
+        state.score += 1;
+        state.speedMs = Math.max(70, state.speedMs - 2);
+        updateScore();
+        placeFood();
+      } else {
+        state.snake.pop();
+      }
+    }
+
+    function drawGrid() {
+      ctx.fillStyle = '#261f1c';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= grid; i++) {
+        const p = i * size;
+        ctx.beginPath();
+        ctx.moveTo(p, 0);
+        ctx.lineTo(p, canvas.height);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(0, p);
+        ctx.lineTo(canvas.width, p);
+        ctx.stroke();
+      }
+    }
+
+    function drawTreat() {
+      const x = state.food.x * size;
+      const y = state.food.y * size;
+      const cx = x + size / 2;
+      const cy = y + size / 2;
+
+      ctx.fillStyle = '#ffdf8a';
+      ctx.beginPath();
+      ctx.arc(cx, cy, size * 0.28, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#c77d2b';
+      for (const [dx, dy] of [[-4, -2], [2, -5], [5, 2], [-3, 4]]) {
+        ctx.beginPath();
+        ctx.arc(cx + dx, cy + dy, 2.4, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function drawWienerDog() {
+      state.snake.forEach((seg, idx) => {
+        const x = seg.x * size;
+        const y = seg.y * size;
+
+        ctx.fillStyle = idx === 0 ? '#9a5131' : '#b9663f';
+        ctx.fillRect(x + 2, y + 4, size - 4, size - 8);
+
+        if (idx > 0 && idx < state.snake.length - 1) {
+          ctx.fillStyle = '#d48a5a';
+          ctx.fillRect(x + 5, y + 7, size - 10, size - 14);
+        }
+      });
+
+      const head = state.snake[0];
+      const hx = head.x * size;
+      const hy = head.y * size;
+      const dx = state.direction.x;
+      const dy = state.direction.y;
+
+      const snoutX = hx + size / 2 + dx * 7;
+      const snoutY = hy + size / 2 + dy * 7;
+
+      ctx.fillStyle = '#7d3f24';
+      ctx.beginPath();
+      ctx.arc(snoutX, snoutY, 6, 0, Math.PI * 2);
+      ctx.fill();
+
+      const perpX = -dy;
+      const perpY = dx;
+
+      ctx.fillStyle = '#5f2c18';
+      ctx.beginPath();
+      ctx.ellipse(hx + size / 2 + perpX * 6, hy + size / 2 + perpY * 6, 3, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.ellipse(hx + size / 2 - perpX * 6, hy + size / 2 - perpY * 6, 3, 7, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#111';
+      ctx.beginPath();
+      ctx.arc(hx + size / 2 + dx * 4 + perpX * 4, hy + size / 2 + dy * 4 + perpY * 4, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(hx + size / 2 + dx * 4 - perpX * 4, hy + size / 2 + dy * 4 - perpY * 4, 2, 0, Math.PI * 2);
+      ctx.fill();
+
+      const tail = state.snake[state.snake.length - 1];
+      const beforeTail = state.snake[state.snake.length - 2] || tail;
+      const tx = tail.x * size + size / 2;
+      const ty = tail.y * size + size / 2;
+      const tailDx = tail.x - beforeTail.x;
+      const tailDy = tail.y - beforeTail.y;
+
+      ctx.strokeStyle = '#6b341d';
+      ctx.lineWidth = 4;
+      ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(tx, ty);
+      ctx.lineTo(tx + tailDx * 8 + 5, ty + tailDy * 8 - 5);
+      ctx.stroke();
+    }
+
+    function drawGameOver() {
+      if (!state.gameOver) return;
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
+      ctx.fillRect(0, canvas.height / 2 - 70, canvas.width, 140);
+
+      ctx.fillStyle = '#fff';
+      ctx.font = '700 42px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 10);
+      ctx.font = '600 22px system-ui';
+      ctx.fillText('Press Restart to play again', canvas.width / 2, canvas.height / 2 + 28);
+    }
+
+    function draw() {
+      drawGrid();
+      drawTreat();
+      drawWienerDog();
+      drawGameOver();
+    }
+
+    function loop() {
+      step();
+      draw();
+      setTimeout(() => requestAnimationFrame(loop), state.speedMs);
+    }
+
+    window.addEventListener('keydown', (event) => {
+      switch (event.key.toLowerCase()) {
+        case 'arrowup':
+        case 'w':
+          setDirection(0, -1);
+          break;
+        case 'arrowdown':
+        case 's':
+          setDirection(0, 1);
+          break;
+        case 'arrowleft':
+        case 'a':
+          setDirection(-1, 0);
+          break;
+        case 'arrowright':
+        case 'd':
+          setDirection(1, 0);
+          break;
+      }
+    });
+
+    restartBtn.addEventListener('click', reset);
+
+    reset();
+    draw();
+    loop();
+  </script>
+</body>
+</html>

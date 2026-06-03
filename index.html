@@ -3,330 +3,1172 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Wiener Snake</title>
+  <title>Atlasly Travel Planner</title>
   <style>
     :root {
-      color-scheme: dark;
-      --bg: #1d1b1a;
-      --panel: #2a2421;
-      --accent: #ff9c44;
-      --text: #fef2e8;
+      color-scheme: light;
+      --ink: #172033;
+      --muted: #617089;
+      --paper: #fffaf2;
+      --panel: rgba(255, 255, 255, 0.82);
+      --panel-strong: #ffffff;
+      --line: rgba(35, 60, 95, 0.14);
+      --brand: #ff5a5f;
+      --brand-dark: #d73f46;
+      --blue: #2c7be5;
+      --teal: #15b8a6;
+      --gold: #ffb020;
+      --green: #2fb344;
+      --shadow: 0 24px 80px rgba(30, 50, 80, 0.18);
     }
 
     * { box-sizing: border-box; }
 
+    html { scroll-behavior: smooth; }
+
     body {
       margin: 0;
       min-height: 100vh;
+      background:
+        radial-gradient(circle at top left, rgba(255, 176, 32, 0.28), transparent 34rem),
+        radial-gradient(circle at top right, rgba(44, 123, 229, 0.22), transparent 36rem),
+        linear-gradient(135deg, #fff7ed 0%, #eef7ff 48%, #f5f0ff 100%);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    button,
+    input,
+    select,
+    textarea { font: inherit; }
+
+    button { cursor: pointer; }
+
+    .app-shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 0 auto;
+      padding: 28px 0 48px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.1fr) minmax(320px, 0.9fr);
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 22px;
+    }
+
+    .hero-card,
+    .panel {
+      background: var(--panel);
+      border: 1px solid rgba(255, 255, 255, 0.7);
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(18px);
+    }
+
+    .hero-card {
+      min-height: 430px;
+      padding: clamp(28px, 5vw, 56px);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -70px -100px auto;
+      width: 310px;
+      height: 310px;
+      border-radius: 999px;
+      background: conic-gradient(from 180deg, var(--brand), var(--gold), var(--teal), var(--blue), var(--brand));
+      opacity: 0.22;
+      filter: blur(4px);
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin: 0 0 18px;
+      padding: 8px 12px;
+      border-radius: 999px;
+      background: rgba(255, 90, 95, 0.12);
+      color: var(--brand-dark);
+      font-weight: 800;
+      font-size: 0.85rem;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    h1,
+    h2,
+    h3,
+    p { margin-top: 0; }
+
+    h1 {
+      max-width: 760px;
+      margin-bottom: 18px;
+      font-size: clamp(2.6rem, 6vw, 5.7rem);
+      line-height: 0.92;
+      letter-spacing: -0.07em;
+    }
+
+    .hero-copy {
+      max-width: 680px;
+      color: #44506a;
+      font-size: clamp(1rem, 2vw, 1.24rem);
+      line-height: 1.7;
+    }
+
+    .hero-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 28px;
+    }
+
+    .btn {
+      border: 0;
+      border-radius: 16px;
+      padding: 13px 18px;
+      font-weight: 850;
+      color: #fff;
+      background: linear-gradient(135deg, var(--brand), #ff8a3d);
+      box-shadow: 0 16px 30px rgba(255, 90, 95, 0.28);
+      transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+    }
+
+    .btn:hover { transform: translateY(-2px); filter: brightness(1.02); }
+
+    .btn.secondary {
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid var(--line);
+      box-shadow: none;
+    }
+
+    .quick-stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-top: 34px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .stat {
+      padding: 16px;
+      border-radius: 20px;
+      background: rgba(255, 255, 255, 0.68);
+      border: 1px solid var(--line);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 1.55rem;
+      letter-spacing: -0.04em;
+    }
+
+    .stat span {
+      color: var(--muted);
+      font-size: 0.88rem;
+      font-weight: 700;
+    }
+
+    .map-card {
+      padding: 20px;
+      display: grid;
+      gap: 16px;
+      overflow: hidden;
+    }
+
+    .map-card h2 { margin-bottom: 2px; }
+
+    .world-map {
+      min-height: 280px;
+      border-radius: 24px;
+      border: 1px solid var(--line);
+      background:
+        linear-gradient(rgba(255,255,255,0.36) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.36) 1px, transparent 1px),
+        linear-gradient(135deg, #dff3ff, #badff4 58%, #a8d0ec);
+      background-size: 48px 48px, 48px 48px, auto;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .continent {
+      position: absolute;
+      border-radius: 55% 45% 48% 52%;
+      background: linear-gradient(135deg, #9bd186, #6cbf77);
+      box-shadow: inset -8px -10px 0 rgba(0, 0, 0, 0.05);
+      opacity: 0.92;
+    }
+
+    .continent.north-america { width: 32%; height: 32%; left: 8%; top: 17%; transform: rotate(-18deg); }
+    .continent.south-america { width: 18%; height: 33%; left: 30%; top: 52%; transform: rotate(20deg); }
+    .continent.europe { width: 16%; height: 18%; left: 49%; top: 22%; transform: rotate(-8deg); }
+    .continent.africa { width: 20%; height: 33%; left: 52%; top: 42%; transform: rotate(8deg); }
+    .continent.asia { width: 34%; height: 34%; left: 63%; top: 20%; transform: rotate(8deg); }
+    .continent.australia { width: 16%; height: 14%; left: 76%; top: 70%; transform: rotate(10deg); }
+
+    .travel-line {
+      position: absolute;
+      height: 4px;
+      border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(255, 90, 95, 0.18);
+      transform-origin: left center;
+      z-index: 3;
+    }
+
+    .pin {
+      position: absolute;
+      z-index: 4;
       display: grid;
       place-items: center;
-      background: radial-gradient(circle at top, #3c2f2a, var(--bg));
-      color: var(--text);
-      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      width: 30px;
+      height: 30px;
+      border-radius: 999px;
+      background: var(--brand);
+      color: white;
+      transform: translate(-50%, -50%);
+      box-shadow: 0 10px 24px rgba(255, 90, 95, 0.36);
+      font-size: 0.85rem;
+      font-weight: 900;
     }
 
-    .game-wrap {
-      width: min(92vw, 640px);
+    .tracker-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      padding: 8px 11px;
+      color: #364156;
+      font-size: 0.9rem;
+      font-weight: 750;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 380px minmax(0, 1fr);
+      gap: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      padding: 22px;
+    }
+
+    .sticky { position: sticky; top: 18px; }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .section-title h2 { margin: 0; letter-spacing: -0.04em; }
+
+    .section-title small { color: var(--muted); font-weight: 800; }
+
+    form {
+      display: grid;
+      gap: 15px;
+    }
+
+    label {
+      display: grid;
+      gap: 7px;
+      color: #2d374c;
+      font-size: 0.9rem;
+      font-weight: 850;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 13px;
+      color: var(--ink);
+      background: rgba(255, 255, 255, 0.86);
+      outline: none;
+      transition: border-color 160ms ease, box-shadow 160ms ease;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: rgba(44, 123, 229, 0.58);
+      box-shadow: 0 0 0 4px rgba(44, 123, 229, 0.12);
+    }
+
+    textarea { min-height: 92px; resize: vertical; }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .checkbox-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .check-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.66);
+      color: #34435d;
+      font-size: 0.86rem;
+      font-weight: 800;
+    }
+
+    .check-pill input { width: auto; accent-color: var(--brand); }
+
+    .tabs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .tab {
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.72);
+      color: #3d4c66;
+      padding: 10px 13px;
+      font-weight: 850;
+    }
+
+    .tab.active {
+      color: #fff;
+      background: var(--ink);
+      border-color: var(--ink);
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .place-card,
+    .guide-card,
+    .nearby-card {
+      background: var(--panel-strong);
+      border: 1px solid var(--line);
+      border-radius: 24px;
+      overflow: hidden;
+      box-shadow: 0 14px 34px rgba(31, 54, 90, 0.08);
+    }
+
+    .place-art {
+      min-height: 148px;
+      padding: 14px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      background: var(--art-bg, linear-gradient(135deg, #f9d976, #f39f86));
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .place-art::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      height: 150px;
+      right: -42px;
+      bottom: -54px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.22);
+    }
+
+    .place-icon {
+      font-size: 2.45rem;
+      filter: drop-shadow(0 10px 20px rgba(0, 0, 0, 0.18));
+    }
+
+    .badge {
+      position: relative;
+      z-index: 1;
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: rgba(0, 0, 0, 0.22);
+      color: #fff;
+      font-weight: 900;
+      font-size: 0.78rem;
+    }
+
+    .place-body { padding: 17px; }
+
+    .place-body h3 {
+      margin-bottom: 7px;
+      font-size: 1.15rem;
+      letter-spacing: -0.03em;
+    }
+
+    .place-body p {
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 0.94rem;
+    }
+
+    .meta-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 12px 0;
+    }
+
+    .mini {
+      border-radius: 999px;
+      padding: 6px 8px;
+      background: #f2f5f8;
+      color: #556276;
+      font-size: 0.78rem;
+      font-weight: 850;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .icon-btn,
+    .text-btn {
+      border: 1px solid var(--line);
+      border-radius: 13px;
+      background: #fff;
+      color: var(--ink);
+      padding: 9px 11px;
+      font-weight: 900;
+    }
+
+    .icon-btn.liked,
+    .icon-btn.faved {
+      color: #fff;
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
+    .text-btn { flex: 1; }
+
+    .text-btn.primary {
+      color: #fff;
+      background: var(--blue);
+      border-color: var(--blue);
+    }
+
+    .nearby-search {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .nearby-list,
+    .guide-list,
+    .saved-list {
       display: grid;
       gap: 12px;
-      justify-items: center;
     }
 
-    .hud {
-      width: 100%;
+    .nearby-card,
+    .guide-card {
+      padding: 16px;
+    }
+
+    .nearby-card h3,
+    .guide-card h3 { margin-bottom: 6px; }
+
+    .nearby-top,
+    .guide-top {
       display: flex;
+      align-items: start;
       justify-content: space-between;
-      padding: 10px 14px;
-      border-radius: 10px;
-      background: color-mix(in oklab, var(--panel), black 10%);
-      border: 1px solid color-mix(in oklab, var(--accent), black 65%);
-      font-weight: 700;
+      gap: 12px;
     }
 
-    #game {
-      width: min(92vw, 640px);
-      height: min(92vw, 640px);
-      image-rendering: pixelated;
-      border-radius: 14px;
-      border: 2px solid #5e4639;
-      background: #261f1c;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+    .rating {
+      color: #9a6412;
+      font-weight: 950;
+      white-space: nowrap;
     }
 
-    .hint {
-      opacity: 0.88;
+    .timeline {
+      position: relative;
+      display: grid;
+      gap: 10px;
+      margin: 14px 0 0;
+      padding-left: 18px;
+    }
+
+    .timeline::before {
+      content: "";
+      position: absolute;
+      left: 5px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: rgba(255, 90, 95, 0.28);
+    }
+
+    .timeline-item {
+      position: relative;
+      color: #526176;
+      line-height: 1.45;
+      font-size: 0.93rem;
+    }
+
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -18px;
+      top: 5px;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      background: var(--brand);
+      box-shadow: 0 0 0 4px rgba(255, 90, 95, 0.16);
+    }
+
+    .empty-state {
+      border: 1px dashed rgba(36, 56, 90, 0.25);
+      border-radius: 22px;
+      padding: 28px;
       text-align: center;
-      font-size: 0.95rem;
+      color: var(--muted);
+      background: rgba(255, 255, 255, 0.52);
     }
 
-    button {
-      border: none;
-      border-radius: 8px;
-      padding: 8px 12px;
-      font-weight: 700;
-      cursor: pointer;
-      background: var(--accent);
-      color: #2d1400;
+    .toast {
+      position: fixed;
+      right: 22px;
+      bottom: 22px;
+      z-index: 10;
+      transform: translateY(120%);
+      opacity: 0;
+      max-width: min(360px, calc(100vw - 44px));
+      border-radius: 18px;
+      padding: 14px 16px;
+      color: #fff;
+      background: #172033;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.24);
+      transition: transform 220ms ease, opacity 220ms ease;
+      font-weight: 800;
     }
 
-    button:hover { filter: brightness(1.05); }
+    .toast.show {
+      transform: translateY(0);
+      opacity: 1;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .layout { grid-template-columns: 1fr; }
+      .sticky { position: static; }
+    }
+
+    @media (max-width: 680px) {
+      .app-shell { width: min(100% - 20px, 1180px); padding-top: 14px; }
+      .hero-card,
+      .panel { border-radius: 22px; padding: 18px; }
+      .quick-stats,
+      .cards,
+      .field-grid,
+      .checkbox-grid,
+      .nearby-search { grid-template-columns: 1fr; }
+      h1 { font-size: 3rem; }
+    }
   </style>
 </head>
 <body>
-  <main class="game-wrap">
-    <h1>🐕 Wiener Snake</h1>
-    <div class="hud">
-      <div>Score: <span id="score">0</span></div>
-      <button id="restart" type="button">Restart</button>
-    </div>
-    <canvas id="game" width="640" height="640" aria-label="Wiener dog snake game"></canvas>
-    <p class="hint">Use arrow keys or WASD. Eat treats, avoid walls and your own tail.</p>
+  <main class="app-shell">
+    <section class="hero">
+      <div class="hero-card">
+        <p class="eyebrow">✈️ AI-style travel concierge</p>
+        <h1>Plan the trip, save the magic, map the memories.</h1>
+        <p class="hero-copy">
+          Pick a destination, describe your travel style, discover landmarks and hidden gems,
+          find useful places near any landmark, like your favorites, and generate day-by-day guides.
+        </p>
+        <div class="hero-actions">
+          <a class="btn" href="#planner">Build my recommendations</a>
+          <a class="btn secondary" href="#tracker">See travel tracker</a>
+        </div>
+        <div class="quick-stats" aria-label="App highlights">
+          <div class="stat"><strong id="likedCount">0</strong><span>liked places</span></div>
+          <div class="stat"><strong id="guideCount">0</strong><span>saved guides</span></div>
+          <div class="stat"><strong id="visitedCount">6</strong><span>visited pins</span></div>
+        </div>
+      </div>
+
+      <aside class="panel map-card" id="tracker">
+        <div>
+          <p class="eyebrow">🌍 Travel tracker</p>
+          <h2>Your world path</h2>
+          <p class="hero-copy">Red routes connect the places you have already visited.</p>
+        </div>
+        <div class="world-map" aria-label="Stylized world map with red travel routes">
+          <span class="continent north-america"></span>
+          <span class="continent south-america"></span>
+          <span class="continent europe"></span>
+          <span class="continent africa"></span>
+          <span class="continent asia"></span>
+          <span class="continent australia"></span>
+          <span class="travel-line" style="left: 19%; top: 37%; width: 31%; transform: rotate(8deg);"></span>
+          <span class="travel-line" style="left: 50%; top: 41%; width: 24%; transform: rotate(28deg);"></span>
+          <span class="travel-line" style="left: 66%; top: 54%; width: 19%; transform: rotate(24deg);"></span>
+          <span class="pin" style="left: 18%; top: 36%;">NY</span>
+          <span class="pin" style="left: 49%; top: 40%;">PAR</span>
+          <span class="pin" style="left: 57%; top: 47%;">ROM</span>
+          <span class="pin" style="left: 70%; top: 58%;">DXB</span>
+          <span class="pin" style="left: 83%; top: 66%;">BKK</span>
+          <span class="pin" style="left: 86%; top: 76%;">SYD</span>
+        </div>
+        <div class="tracker-list" id="trackerList"></div>
+      </aside>
+    </section>
+
+    <section class="layout" id="planner">
+      <aside class="panel sticky">
+        <div class="section-title">
+          <h2>Trip profile</h2>
+          <small>Step 1</small>
+        </div>
+        <form id="profileForm">
+          <label>
+            Destination
+            <select id="destination" name="destination">
+              <option value="paris">Paris, France</option>
+              <option value="rome">Rome, Italy</option>
+              <option value="tokyo">Tokyo, Japan</option>
+              <option value="cape-town">Cape Town, South Africa</option>
+              <option value="new-york">New York City, USA</option>
+            </select>
+          </label>
+
+          <div class="field-grid">
+            <label>
+              Trip length
+              <select id="days" name="days">
+                <option value="2">2 days</option>
+                <option value="3" selected>3 days</option>
+                <option value="5">5 days</option>
+                <option value="7">7 days</option>
+              </select>
+            </label>
+            <label>
+              Budget
+              <select id="budget" name="budget">
+                <option>Smart saver</option>
+                <option selected>Balanced</option>
+                <option>Luxury</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="field-grid">
+            <label>
+              Pace
+              <select id="pace" name="pace">
+                <option>Slow & relaxed</option>
+                <option selected>Comfortable</option>
+                <option>Pack it all in</option>
+              </select>
+            </label>
+            <label>
+              Group
+              <select id="group" name="group">
+                <option>Solo</option>
+                <option selected>Couple</option>
+                <option>Friends</option>
+                <option>Family</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            What do you like?
+            <div class="checkbox-grid" id="interestGrid">
+              <span class="check-pill"><input type="checkbox" value="culture" checked> Culture</span>
+              <span class="check-pill"><input type="checkbox" value="food" checked> Food</span>
+              <span class="check-pill"><input type="checkbox" value="nature"> Nature</span>
+              <span class="check-pill"><input type="checkbox" value="nightlife"> Nightlife</span>
+              <span class="check-pill"><input type="checkbox" value="shopping"> Shopping</span>
+              <span class="check-pill"><input type="checkbox" value="wellness"> Wellness</span>
+            </div>
+          </label>
+
+          <label>
+            Extra notes
+            <textarea id="notes" placeholder="Example: I love museums, scenic views, vegetarian food, and places that are not too crowded."></textarea>
+          </label>
+
+          <button class="btn" type="submit">Generate recommendations</button>
+        </form>
+      </aside>
+
+      <section class="panel">
+        <div class="tabs" role="tablist" aria-label="Travel planning sections">
+          <button class="tab active" type="button" data-view="recommendations">Recommendations</button>
+          <button class="tab" type="button" data-view="nearby">Nearby finder</button>
+          <button class="tab" type="button" data-view="saved">Liked places</button>
+          <button class="tab" type="button" data-view="guides">Travel guides</button>
+        </div>
+
+        <div class="view active" id="recommendations">
+          <div class="section-title">
+            <div>
+              <h2 id="recommendationTitle">Paris picks for you</h2>
+              <small id="recommendationSubcopy">Based on culture, food, balanced budget, and a comfortable pace.</small>
+            </div>
+          </div>
+          <div class="cards" id="recommendationCards"></div>
+        </div>
+
+        <div class="view" id="nearby">
+          <div class="section-title">
+            <div>
+              <h2>Find places near a landmark</h2>
+              <small>Coffee shops, gyms, bookstores, restaurants, parks, and more.</small>
+            </div>
+          </div>
+          <div class="nearby-search">
+            <label>
+              Landmark
+              <select id="landmarkSelect"></select>
+            </label>
+            <label>
+              Looking for
+              <select id="nearbyType">
+                <option value="coffee">Coffee shops</option>
+                <option value="gym">Gyms</option>
+                <option value="restaurant">Restaurants</option>
+                <option value="bookstore">Bookstores</option>
+                <option value="park">Parks</option>
+                <option value="pharmacy">Pharmacies</option>
+              </select>
+            </label>
+            <button class="btn" type="button" id="nearbyBtn">Search</button>
+          </div>
+          <div class="nearby-list" id="nearbyResults"></div>
+        </div>
+
+        <div class="view" id="saved">
+          <div class="section-title">
+            <div>
+              <h2>Your liked places</h2>
+              <small>Like places like Instagram, then use them in a guide.</small>
+            </div>
+          </div>
+          <div class="saved-list" id="savedPlaces"></div>
+        </div>
+
+        <div class="view" id="guides">
+          <div class="section-title">
+            <div>
+              <h2>Personalized travel guides</h2>
+              <small>Click any recommendation to create a schedule, then favorite it.</small>
+            </div>
+          </div>
+          <div class="guide-list" id="guideList"></div>
+        </div>
+      </section>
+    </section>
   </main>
 
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
   <script>
-    const canvas = document.getElementById('game');
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Canvas 2D context is not available in this browser.');
-    }
-    const scoreNode = document.getElementById('score');
-    const restartBtn = document.getElementById('restart');
-
-    const grid = 20;
-    const size = canvas.width / grid;
-
-    const state = {
-      snake: [],
-      direction: { x: 1, y: 0 },
-      nextDirection: { x: 1, y: 0 },
-      food: { x: 8, y: 8 },
-      score: 0,
-      gameOver: false,
-      speedMs: 120,
+    const destinations = {
+      paris: {
+        label: 'Paris, France',
+        emoji: '🗼',
+        visited: ['New York', 'London', 'Paris', 'Rome', 'Dubai', 'Bangkok'],
+        places: [
+          { id: 'louvre', name: 'The Louvre & Tuileries', icon: '🎨', category: 'culture', vibe: 'Iconic museum morning with garden downtime.', time: '3-4 hrs', cost: '$$', match: 98, color: 'linear-gradient(135deg, #7c3aed, #f472b6)', description: 'Explore masterpiece galleries, then decompress with pastries and fountains in the Tuileries.' },
+          { id: 'montmartre', name: 'Montmartre Village Walk', icon: '🎭', category: 'culture', vibe: 'Romantic hills, artists, and city views.', time: '2 hrs', cost: '$', match: 93, color: 'linear-gradient(135deg, #ff7a59, #ffb020)', description: 'A winding route through Sacré-Cœur, tiny lanes, portrait artists, and classic bistros.' },
+          { id: 'seine', name: 'Seine Sunset Picnic', icon: '🥖', category: 'food', vibe: 'Relaxed local-style evening.', time: '2-3 hrs', cost: '$', match: 91, color: 'linear-gradient(135deg, #15b8a6, #2c7be5)', description: 'Pick up cheese, fruit, and bread before a golden-hour walk along the river islands.' },
+          { id: 'marais', name: 'Le Marais Food Crawl', icon: '🍷', category: 'food', vibe: 'Trendy streets with historic flavor.', time: '3 hrs', cost: '$$', match: 90, color: 'linear-gradient(135deg, #ef4444, #f97316)', description: 'Taste falafel, chocolate, wine bars, and boutiques across one of Paris’s liveliest districts.' },
+          { id: 'versailles', name: 'Versailles Day Escape', icon: '👑', category: 'culture', vibe: 'Grand palace and gardens.', time: 'Full day', cost: '$$$', match: 86, color: 'linear-gradient(135deg, #f59e0b, #84cc16)', description: 'A regal day trip with mirrored halls, landscaped gardens, and optional bike rentals.' },
+          { id: 'canal', name: 'Canal Saint-Martin Evening', icon: '🌉', category: 'nightlife', vibe: 'Low-key drinks and local energy.', time: '2 hrs', cost: '$$', match: 84, color: 'linear-gradient(135deg, #2563eb, #06b6d4)', description: 'Bridge-side aperitifs, indie shops, and casual dinner stops away from the biggest crowds.' }
+        ],
+        landmarks: ['Eiffel Tower', 'The Louvre', 'Notre-Dame', 'Sacré-Cœur']
+      },
+      rome: {
+        label: 'Rome, Italy',
+        emoji: '🏛️',
+        visited: ['New York', 'Paris', 'Rome', 'Athens', 'Istanbul', 'Cairo'],
+        places: [
+          { id: 'colosseum', name: 'Colosseum & Roman Forum', icon: '🏟️', category: 'culture', vibe: 'Ancient history blockbuster.', time: '3 hrs', cost: '$$', match: 98, color: 'linear-gradient(135deg, #b45309, #f59e0b)', description: 'Walk through arena stories, imperial ruins, and viewpoint terraces with a smart timed-entry plan.' },
+          { id: 'trastevere', name: 'Trastevere Dinner Trail', icon: '🍝', category: 'food', vibe: 'Cozy lanes and trattorias.', time: '3 hrs', cost: '$$', match: 94, color: 'linear-gradient(135deg, #dc2626, #fb7185)', description: 'A self-guided route for carbonara, wine bars, piazza people-watching, and gelato.' },
+          { id: 'vatican', name: 'Vatican Museums Focus Route', icon: '🖼️', category: 'culture', vibe: 'Art-rich but efficient.', time: '4 hrs', cost: '$$$', match: 91, color: 'linear-gradient(135deg, #4338ca, #60a5fa)', description: 'Prioritize the Sistine Chapel, Raphael Rooms, and St. Peter’s without museum fatigue.' },
+          { id: 'appian', name: 'Appian Way Bike Ride', icon: '🚲', category: 'nature', vibe: 'Ancient road meets countryside.', time: 'Half day', cost: '$$', match: 88, color: 'linear-gradient(135deg, #16a34a, #84cc16)', description: 'Cycle past aqueducts, catacombs, and green open spaces just outside the city center.' },
+          { id: 'testaccio', name: 'Testaccio Market Lunch', icon: '🥙', category: 'food', vibe: 'Real Roman flavors.', time: '2 hrs', cost: '$', match: 87, color: 'linear-gradient(135deg, #f97316, #facc15)', description: 'Snack through a local market known for sandwiches, produce, and classic Roman street food.' },
+          { id: 'borghese', name: 'Villa Borghese Reset', icon: '🌳', category: 'wellness', vibe: 'Parks, views, and calm.', time: '2 hrs', cost: '$', match: 82, color: 'linear-gradient(135deg, #0f766e, #34d399)', description: 'Take a breather with gardens, rowboats, and a viewpoint over Piazza del Popolo.' }
+        ],
+        landmarks: ['Colosseum', 'Trevi Fountain', 'Pantheon', 'Vatican Museums']
+      },
+      tokyo: {
+        label: 'Tokyo, Japan',
+        emoji: '🗾',
+        visited: ['San Francisco', 'Honolulu', 'Tokyo', 'Kyoto', 'Seoul', 'Singapore'],
+        places: [
+          { id: 'shibuya', name: 'Shibuya Culture Loop', icon: '🚦', category: 'shopping', vibe: 'Fashion, crossings, pop culture.', time: '3 hrs', cost: '$$', match: 96, color: 'linear-gradient(135deg, #ec4899, #8b5cf6)', description: 'Blend the famous scramble, record shops, streetwear, dessert cafes, and rooftop views.' },
+          { id: 'asakusa', name: 'Asakusa Temple Morning', icon: '⛩️', category: 'culture', vibe: 'Traditional Tokyo start.', time: '2 hrs', cost: '$', match: 94, color: 'linear-gradient(135deg, #ef4444, #f59e0b)', description: 'Visit Sensō-ji early, browse Nakamise snacks, then wander toward the Sumida River.' },
+          { id: 'tsukiji', name: 'Tsukiji Outer Market Bites', icon: '🍣', category: 'food', vibe: 'Seafood and street snacks.', time: '2 hrs', cost: '$$', match: 92, color: 'linear-gradient(135deg, #06b6d4, #2563eb)', description: 'Taste tamagoyaki, sushi bowls, mochi, and coffee while the market is most energetic.' },
+          { id: 'meiji', name: 'Meiji Shrine & Yoyogi Park', icon: '🌲', category: 'nature', vibe: 'Forest calm in the city.', time: '2 hrs', cost: '$', match: 89, color: 'linear-gradient(135deg, #15803d, #22c55e)', description: 'A quiet reset between Harajuku and Shibuya with torii gates and wide park paths.' },
+          { id: 'ginza', name: 'Ginza Design Afternoon', icon: '🛍️', category: 'shopping', vibe: 'Elegant stores and galleries.', time: '3 hrs', cost: '$$$', match: 84, color: 'linear-gradient(135deg, #334155, #94a3b8)', description: 'Explore flagship architecture, stationery shops, depachika food halls, and refined cafes.' },
+          { id: 'shinjuku', name: 'Shinjuku Night Lights', icon: '🌃', category: 'nightlife', vibe: 'Neon, tiny bars, ramen.', time: '3 hrs', cost: '$$', match: 83, color: 'linear-gradient(135deg, #4f46e5, #e879f9)', description: 'A guided-feeling evening through Omoide Yokocho, Golden Gai, and late-night ramen.' }
+        ],
+        landmarks: ['Tokyo Tower', 'Sensō-ji', 'Shibuya Crossing', 'Meiji Shrine']
+      },
+      'cape-town': {
+        label: 'Cape Town, South Africa',
+        emoji: '⛰️',
+        visited: ['Lisbon', 'Marrakesh', 'Cape Town', 'Johannesburg', 'Zanzibar', 'Nairobi'],
+        places: [
+          { id: 'table', name: 'Table Mountain Summit', icon: '🚠', category: 'nature', vibe: 'Big views and fresh air.', time: '3 hrs', cost: '$$', match: 97, color: 'linear-gradient(135deg, #0f766e, #38bdf8)', description: 'Ride or hike up for panoramic city, ocean, and mountain views with flexible timing.' },
+          { id: 'bo-kaap', name: 'Bo-Kaap Heritage Walk', icon: '🎨', category: 'culture', vibe: 'Colorful history.', time: '1.5 hrs', cost: '$', match: 92, color: 'linear-gradient(135deg, #db2777, #f97316)', description: 'Learn the neighborhood’s Cape Malay roots, bright homes, and food traditions.' },
+          { id: 'waterfront', name: 'V&A Waterfront Evening', icon: '🛥️', category: 'food', vibe: 'Easy dining and harbor life.', time: '3 hrs', cost: '$$', match: 89, color: 'linear-gradient(135deg, #2563eb, #14b8a6)', description: 'Restaurants, local markets, sunset harbor views, and live music in one walkable area.' },
+          { id: 'boulders', name: 'Boulders Beach Penguins', icon: '🐧', category: 'nature', vibe: 'Wildlife day trip.', time: 'Half day', cost: '$$', match: 88, color: 'linear-gradient(135deg, #64748b, #22c55e)', description: 'Meet penguins near Simon’s Town and pair it with coastal viewpoints.' },
+          { id: 'winelands', name: 'Constantia Wine Route', icon: '🍇', category: 'food', vibe: 'Scenic tastings.', time: 'Half day', cost: '$$$', match: 85, color: 'linear-gradient(135deg, #7c2d12, #a3e635)', description: 'Visit historic vineyards close to the city with mountain backdrops and cellar-door lunches.' },
+          { id: 'sea-point', name: 'Sea Point Promenade Run', icon: '🏃', category: 'wellness', vibe: 'Oceanfront wellness.', time: '1 hr', cost: '$', match: 82, color: 'linear-gradient(135deg, #0284c7, #67e8f9)', description: 'Walk, jog, or rent bikes along the Atlantic with public art and sunset benches.' }
+        ],
+        landmarks: ['Table Mountain', 'V&A Waterfront', 'Boulders Beach', 'Cape Point']
+      },
+      'new-york': {
+        label: 'New York City, USA',
+        emoji: '🗽',
+        visited: ['Los Angeles', 'Chicago', 'New York', 'Boston', 'London', 'Paris'],
+        places: [
+          { id: 'central-park', name: 'Central Park Icons Walk', icon: '🌳', category: 'nature', vibe: 'Classic NYC breathing room.', time: '2 hrs', cost: '$', match: 96, color: 'linear-gradient(135deg, #16a34a, #84cc16)', description: 'A route through Bethesda Terrace, Bow Bridge, lake views, and picnic-friendly lawns.' },
+          { id: 'met', name: 'The Met Highlights', icon: '🏺', category: 'culture', vibe: 'World-class art sampler.', time: '3 hrs', cost: '$$', match: 94, color: 'linear-gradient(135deg, #7c3aed, #3b82f6)', description: 'A focused route through Egyptian, European, fashion, and rooftop areas.' },
+          { id: 'chelsea', name: 'Chelsea Market & High Line', icon: '🌮', category: 'food', vibe: 'Food hall plus elevated park.', time: '3 hrs', cost: '$$', match: 92, color: 'linear-gradient(135deg, #f97316, #eab308)', description: 'Snack indoors, then walk gardens and public art above the west side.' },
+          { id: 'brooklyn', name: 'Brooklyn Bridge to DUMBO', icon: '🌉', category: 'culture', vibe: 'Skyline photo route.', time: '2 hrs', cost: '$', match: 90, color: 'linear-gradient(135deg, #0284c7, #0f172a)', description: 'Cross the bridge, find cobblestone viewpoints, and relax in Brooklyn Bridge Park.' },
+          { id: 'soho', name: 'SoHo Shopping Circuit', icon: '🛍️', category: 'shopping', vibe: 'Boutiques and design.', time: '3 hrs', cost: '$$$', match: 86, color: 'linear-gradient(135deg, #475569, #f472b6)', description: 'Mix flagship stores, independent boutiques, galleries, and stylish cafe breaks.' },
+          { id: 'village', name: 'West Village Night Out', icon: '🎷', category: 'nightlife', vibe: 'Comedy, jazz, and cozy bars.', time: '3 hrs', cost: '$$', match: 84, color: 'linear-gradient(135deg, #111827, #a855f7)', description: 'A flexible evening with live venues, speakeasy-style bars, and late dessert.' }
+        ],
+        landmarks: ['Statue of Liberty', 'Empire State Building', 'Central Park', 'Times Square']
+      }
     };
 
-    function reset() {
-      state.snake = [
-        { x: 5, y: 10 },
-        { x: 4, y: 10 },
-        { x: 3, y: 10 },
-        { x: 2, y: 10 },
-      ];
-      state.direction = { x: 1, y: 0 };
-      state.nextDirection = { x: 1, y: 0 };
-      state.score = 0;
-      state.gameOver = false;
-      state.speedMs = 120;
-      placeFood();
-      updateScore();
+    const nearbyTemplates = {
+      coffee: ['Roast & Post Café', 'Morning Compass Coffee', 'Little Atlas Espresso'],
+      gym: ['Pulse Local Gym', 'Traveler Fit Studio', 'Core & Climb Fitness'],
+      restaurant: ['Corner Table Bistro', 'Map Room Kitchen', 'Golden Hour Brasserie'],
+      bookstore: ['Chapter Lane Books', 'Nomad Pages', 'The Bookmark Loft'],
+      park: ['Pocket Garden', 'Riverside Green', 'Sunset Lawn'],
+      pharmacy: ['CarePoint Pharmacy', 'City Health Chemist', 'Wellness Stop']
+    };
+
+    const state = {
+      destinationKey: 'paris',
+      liked: new Set(JSON.parse(localStorage.getItem('atlasly-liked') || '[]')),
+      favoriteGuides: new Set(JSON.parse(localStorage.getItem('atlasly-fav-guides') || '[]')),
+      guides: JSON.parse(localStorage.getItem('atlasly-guides') || '[]')
+    };
+
+    const form = document.getElementById('profileForm');
+    const destinationSelect = document.getElementById('destination');
+    const recommendationCards = document.getElementById('recommendationCards');
+    const recommendationTitle = document.getElementById('recommendationTitle');
+    const recommendationSubcopy = document.getElementById('recommendationSubcopy');
+    const landmarkSelect = document.getElementById('landmarkSelect');
+    const nearbyType = document.getElementById('nearbyType');
+    const nearbyBtn = document.getElementById('nearbyBtn');
+    const nearbyResults = document.getElementById('nearbyResults');
+    const savedPlaces = document.getElementById('savedPlaces');
+    const guideList = document.getElementById('guideList');
+    const toast = document.getElementById('toast');
+
+    function getDestination() {
+      return destinations[state.destinationKey];
     }
 
-    function updateScore() {
-      scoreNode.textContent = String(state.score);
+    function getInterests() {
+      return [...document.querySelectorAll('#interestGrid input:checked')].map(input => input.value);
     }
 
-    function placeFood() {
-      let x, y, overlap;
-      do {
-        x = Math.floor(Math.random() * grid);
-        y = Math.floor(Math.random() * grid);
-        overlap = state.snake.some(seg => seg.x === x && seg.y === y);
-      } while (overlap);
-      state.food = { x, y };
+    function getAllPlaces() {
+      return Object.values(destinations).flatMap(destination => destination.places.map(place => ({ ...place, destination: destination.label })));
     }
 
-    function setDirection(x, y) {
-      if (state.direction.x + x === 0 && state.direction.y + y === 0) return;
-      state.nextDirection = { x, y };
+    function persist() {
+      localStorage.setItem('atlasly-liked', JSON.stringify([...state.liked]));
+      localStorage.setItem('atlasly-guides', JSON.stringify(state.guides));
+      localStorage.setItem('atlasly-fav-guides', JSON.stringify([...state.favoriteGuides]));
     }
 
-    function step() {
-      if (state.gameOver) return;
+    function showToast(message) {
+      toast.textContent = message;
+      toast.classList.add('show');
+      clearTimeout(showToast.timer);
+      showToast.timer = setTimeout(() => toast.classList.remove('show'), 2200);
+    }
 
-      state.direction = state.nextDirection;
-      const head = state.snake[0];
-      const newHead = {
-        x: head.x + state.direction.x,
-        y: head.y + state.direction.y,
-      };
+    function updateStats() {
+      document.getElementById('likedCount').textContent = state.liked.size;
+      document.getElementById('guideCount').textContent = state.guides.length;
+      document.getElementById('visitedCount').textContent = getDestination().visited.length;
+    }
 
-      const hitWall = newHead.x < 0 || newHead.x >= grid || newHead.y < 0 || newHead.y >= grid;
-      const eating = newHead.x === state.food.x && newHead.y === state.food.y;
-      const bodyToCheck = eating ? state.snake : state.snake.slice(0, -1);
-      const hitSelf = bodyToCheck.some(seg => seg.x === newHead.x && seg.y === newHead.y);
+    function renderTracker() {
+      const trackerList = document.getElementById('trackerList');
+      trackerList.innerHTML = getDestination().visited.map(city => `<span class="chip">📍 ${city}</span>`).join('');
+      updateStats();
+    }
 
-      if (hitWall || hitSelf) {
-        state.gameOver = true;
-        draw();
+    function renderLandmarks() {
+      landmarkSelect.innerHTML = getDestination().landmarks.map(landmark => `<option>${landmark}</option>`).join('');
+    }
+
+    function scorePlaces(places) {
+      const interests = getInterests();
+      return places
+        .map(place => ({
+          ...place,
+          visibleMatch: Math.min(99, place.match + (interests.includes(place.category) ? 4 : -3))
+        }))
+        .sort((a, b) => b.visibleMatch - a.visibleMatch);
+    }
+
+    function renderRecommendations() {
+      const destination = getDestination();
+      const interests = getInterests();
+      const budget = document.getElementById('budget').value;
+      const pace = document.getElementById('pace').value;
+      recommendationTitle.textContent = `${destination.label} picks for you`;
+      recommendationSubcopy.textContent = `Based on ${interests.join(', ') || 'open-minded exploring'}, ${budget.toLowerCase()} budget, and a ${pace.toLowerCase()} pace.`;
+      recommendationCards.innerHTML = scorePlaces(destination.places).map(renderPlaceCard).join('');
+      renderLandmarks();
+      renderTracker();
+    }
+
+    function renderPlaceCard(place) {
+      const liked = state.liked.has(place.id);
+      return `
+        <article class="place-card">
+          <div class="place-art" style="--art-bg: ${place.color};">
+            <span class="place-icon">${place.icon}</span>
+            <span class="badge">${place.visibleMatch || place.match}% match</span>
+          </div>
+          <div class="place-body">
+            <h3>${place.name}</h3>
+            <p>${place.description}</p>
+            <div class="meta-row">
+              <span class="mini">${place.vibe}</span>
+              <span class="mini">⏱ ${place.time}</span>
+              <span class="mini">${place.cost}</span>
+            </div>
+            <div class="card-actions">
+              <button class="icon-btn ${liked ? 'liked' : ''}" type="button" data-like="${place.id}" aria-label="Like ${place.name}">${liked ? '♥' : '♡'}</button>
+              <button class="text-btn primary" type="button" data-guide="${place.id}">Ask for guide</button>
+            </div>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderNearby() {
+      const landmark = landmarkSelect.value || getDestination().landmarks[0];
+      const type = nearbyType.value;
+      const destination = getDestination();
+      nearbyResults.innerHTML = nearbyTemplates[type].map((name, index) => {
+        const distance = (0.2 + index * 0.35).toFixed(1);
+        const rating = (4.8 - index * 0.2).toFixed(1);
+        return `
+          <article class="nearby-card">
+            <div class="nearby-top">
+              <div>
+                <h3>${name}</h3>
+                <p>${capitalize(type)} near ${landmark} in ${destination.label}. Best for ${index === 0 ? 'quick stops' : index === 1 ? 'a relaxed break' : 'backup options'}.</p>
+              </div>
+              <span class="rating">★ ${rating}</span>
+            </div>
+            <div class="meta-row">
+              <span class="mini">📍 ${distance} km away</span>
+              <span class="mini">Open today</span>
+              <span class="mini">Traveler friendly</span>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderSaved() {
+      const likedPlaces = getAllPlaces().filter(place => state.liked.has(place.id));
+      if (!likedPlaces.length) {
+        savedPlaces.innerHTML = '<div class="empty-state"><h3>No liked places yet</h3><p>Tap the heart on recommendations to save places you love.</p></div>';
         return;
       }
-
-      state.snake.unshift(newHead);
-
-      if (eating) {
-        state.score += 1;
-        state.speedMs = Math.max(70, state.speedMs - 2);
-        updateScore();
-        placeFood();
-      } else {
-        state.snake.pop();
-      }
+      savedPlaces.innerHTML = likedPlaces.map(place => `
+        <article class="nearby-card">
+          <div class="nearby-top">
+            <div>
+              <h3>${place.icon} ${place.name}</h3>
+              <p>${place.destination} · ${place.description}</p>
+            </div>
+            <button class="icon-btn liked" type="button" data-like="${place.id}">♥</button>
+          </div>
+          <button class="text-btn primary" type="button" data-guide="${place.id}">Create guide with this place</button>
+        </article>
+      `).join('');
     }
 
-    function drawGrid() {
-      ctx.fillStyle = '#261f1c';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.strokeStyle = 'rgba(255,255,255,0.06)';
-      ctx.lineWidth = 1;
-      for (let i = 0; i <= grid; i++) {
-        const p = i * size;
-        ctx.beginPath();
-        ctx.moveTo(p, 0);
-        ctx.lineTo(p, canvas.height);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, p);
-        ctx.lineTo(canvas.width, p);
-        ctx.stroke();
-      }
-    }
-
-    function drawTreat() {
-      const x = state.food.x * size;
-      const y = state.food.y * size;
-      const cx = x + size / 2;
-      const cy = y + size / 2;
-
-      ctx.fillStyle = '#ffdf8a';
-      ctx.beginPath();
-      ctx.arc(cx, cy, size * 0.28, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#c77d2b';
-      for (const [dx, dy] of [[-4, -2], [2, -5], [5, 2], [-3, 4]]) {
-        ctx.beginPath();
-        ctx.arc(cx + dx, cy + dy, 2.4, 0, Math.PI * 2);
-        ctx.fill();
-      }
-    }
-
-    function drawWienerDog() {
-      state.snake.forEach((seg, idx) => {
-        const x = seg.x * size;
-        const y = seg.y * size;
-
-        ctx.fillStyle = idx === 0 ? '#9a5131' : '#b9663f';
-        ctx.fillRect(x + 2, y + 4, size - 4, size - 8);
-
-        if (idx > 0 && idx < state.snake.length - 1) {
-          ctx.fillStyle = '#d48a5a';
-          ctx.fillRect(x + 5, y + 7, size - 10, size - 14);
-        }
+    function createGuide(placeId) {
+      const place = getAllPlaces().find(item => item.id === placeId);
+      if (!place) return;
+      const days = Number(document.getElementById('days').value);
+      const notes = document.getElementById('notes').value.trim();
+      const likedNames = getAllPlaces().filter(item => state.liked.has(item.id)).slice(0, 3).map(item => item.name);
+      const schedule = Array.from({ length: Math.min(days, 5) }, (_, index) => {
+        const day = index + 1;
+        if (day === 1) return `Day ${day}: Start with ${place.name}, then add a nearby food stop and an easy evening walk.`;
+        if (likedNames[index - 1]) return `Day ${day}: Build the day around ${likedNames[index - 1]} with time for breaks and photos.`;
+        return `Day ${day}: Mix one landmark, one local neighborhood, and one flexible activity based on your energy.`;
       });
-
-      const head = state.snake[0];
-      const hx = head.x * size;
-      const hy = head.y * size;
-      const dx = state.direction.x;
-      const dy = state.direction.y;
-
-      const snoutX = hx + size / 2 + dx * 7;
-      const snoutY = hy + size / 2 + dy * 7;
-
-      ctx.fillStyle = '#7d3f24';
-      ctx.beginPath();
-      ctx.arc(snoutX, snoutY, 6, 0, Math.PI * 2);
-      ctx.fill();
-
-      const perpX = -dy;
-      const perpY = dx;
-
-      ctx.fillStyle = '#5f2c18';
-      ctx.beginPath();
-      ctx.ellipse(hx + size / 2 + perpX * 6, hy + size / 2 + perpY * 6, 3, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.ellipse(hx + size / 2 - perpX * 6, hy + size / 2 - perpY * 6, 3, 7, 0, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.fillStyle = '#111';
-      ctx.beginPath();
-      ctx.arc(hx + size / 2 + dx * 4 + perpX * 4, hy + size / 2 + dy * 4 + perpY * 4, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      ctx.beginPath();
-      ctx.arc(hx + size / 2 + dx * 4 - perpX * 4, hy + size / 2 + dy * 4 - perpY * 4, 2, 0, Math.PI * 2);
-      ctx.fill();
-
-      const tail = state.snake[state.snake.length - 1];
-      const beforeTail = state.snake[state.snake.length - 2] || tail;
-      const tx = tail.x * size + size / 2;
-      const ty = tail.y * size + size / 2;
-      const tailDx = tail.x - beforeTail.x;
-      const tailDy = tail.y - beforeTail.y;
-
-      ctx.strokeStyle = '#6b341d';
-      ctx.lineWidth = 4;
-      ctx.lineCap = 'round';
-      ctx.beginPath();
-      ctx.moveTo(tx, ty);
-      ctx.lineTo(tx + tailDx * 8 + 5, ty + tailDy * 8 - 5);
-      ctx.stroke();
+      if (notes) schedule.push(`Personal note: ${notes}`);
+      const guide = {
+        id: `guide-${Date.now()}`,
+        title: `${place.destination} guide anchored at ${place.name}`,
+        placeId,
+        schedule,
+        created: new Date().toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
+      };
+      state.guides.unshift(guide);
+      persist();
+      renderGuides();
+      renderSaved();
+      updateStats();
+      switchView('guides');
+      showToast('Personalized guide created and saved.');
     }
 
-    function drawGameOver() {
-      if (!state.gameOver) return;
-      ctx.fillStyle = 'rgba(0, 0, 0, 0.55)';
-      ctx.fillRect(0, canvas.height / 2 - 70, canvas.width, 140);
-
-      ctx.fillStyle = '#fff';
-      ctx.font = '700 42px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('Game Over', canvas.width / 2, canvas.height / 2 - 10);
-      ctx.font = '600 22px system-ui';
-      ctx.fillText('Press Restart to play again', canvas.width / 2, canvas.height / 2 + 28);
-    }
-
-    function draw() {
-      drawGrid();
-      drawTreat();
-      drawWienerDog();
-      drawGameOver();
-    }
-
-    function loop() {
-      step();
-      draw();
-      setTimeout(() => requestAnimationFrame(loop), state.speedMs);
-    }
-
-    window.addEventListener('keydown', (event) => {
-      switch (event.key.toLowerCase()) {
-        case 'arrowup':
-        case 'w':
-          setDirection(0, -1);
-          break;
-        case 'arrowdown':
-        case 's':
-          setDirection(0, 1);
-          break;
-        case 'arrowleft':
-        case 'a':
-          setDirection(-1, 0);
-          break;
-        case 'arrowright':
-        case 'd':
-          setDirection(1, 0);
-          break;
+    function renderGuides() {
+      if (!state.guides.length) {
+        guideList.innerHTML = '<div class="empty-state"><h3>No travel guides yet</h3><p>Click “Ask for guide” on any place to generate a personalized schedule.</p></div>';
+        return;
       }
+      guideList.innerHTML = state.guides.map(guide => {
+        const faved = state.favoriteGuides.has(guide.id);
+        return `
+          <article class="guide-card">
+            <div class="guide-top">
+              <div>
+                <h3>${guide.title}</h3>
+                <p>Saved ${guide.created}</p>
+              </div>
+              <button class="icon-btn ${faved ? 'faved' : ''}" type="button" data-fav-guide="${guide.id}" aria-label="Favorite guide">${faved ? '★' : '☆'}</button>
+            </div>
+            <div class="timeline">
+              ${guide.schedule.map(item => `<div class="timeline-item">${item}</div>`).join('')}
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function switchView(viewId) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.toggle('active', tab.dataset.view === viewId));
+      document.querySelectorAll('.view').forEach(view => view.classList.toggle('active', view.id === viewId));
+    }
+
+    function toggleLike(placeId) {
+      if (state.liked.has(placeId)) {
+        state.liked.delete(placeId);
+        showToast('Removed from liked places.');
+      } else {
+        state.liked.add(placeId);
+        showToast('Place liked and saved.');
+      }
+      persist();
+      renderRecommendations();
+      renderSaved();
+      updateStats();
+    }
+
+    function toggleFavoriteGuide(guideId) {
+      if (state.favoriteGuides.has(guideId)) {
+        state.favoriteGuides.delete(guideId);
+        showToast('Guide removed from favorites.');
+      } else {
+        state.favoriteGuides.add(guideId);
+        showToast('Guide favorited.');
+      }
+      persist();
+      renderGuides();
+    }
+
+    function capitalize(value) {
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    form.addEventListener('submit', (event) => {
+      event.preventDefault();
+      state.destinationKey = destinationSelect.value;
+      renderRecommendations();
+      renderNearby();
+      showToast('Recommendations refreshed for your trip profile.');
     });
 
-    restartBtn.addEventListener('click', reset);
+    destinationSelect.addEventListener('change', () => {
+      state.destinationKey = destinationSelect.value;
+      renderRecommendations();
+      renderNearby();
+    });
 
-    reset();
-    draw();
-    loop();
+    document.getElementById('interestGrid').addEventListener('change', renderRecommendations);
+    nearbyBtn.addEventListener('click', renderNearby);
+    landmarkSelect.addEventListener('change', renderNearby);
+    nearbyType.addEventListener('change', renderNearby);
+
+    document.querySelector('.tabs').addEventListener('click', (event) => {
+      const tab = event.target.closest('[data-view]');
+      if (tab) switchView(tab.dataset.view);
+    });
+
+    document.body.addEventListener('click', (event) => {
+      const likeButton = event.target.closest('[data-like]');
+      const guideButton = event.target.closest('[data-guide]');
+      const favButton = event.target.closest('[data-fav-guide]');
+      if (likeButton) toggleLike(likeButton.dataset.like);
+      if (guideButton) createGuide(guideButton.dataset.guide);
+      if (favButton) toggleFavoriteGuide(favButton.dataset.favGuide);
+    });
+
+    renderRecommendations();
+    renderNearby();
+    renderSaved();
+    renderGuides();
   </script>
 </body>
 </html>
